@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Fixed update cache not clearing when checking for updates manually in WordPress.
+
 ## 1.1.0
 
 - Circles tab now uses BB's repeatable form field (`multiple => true`) instead of a fixed 1-4 dropdown. Circles can be added, duplicated, deleted, and reordered directly in the settings panel.

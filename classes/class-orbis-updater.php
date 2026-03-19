@@ -23,6 +23,9 @@ class Orbis_GitHub_Updater {
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 20, 3 );
 		add_filter( 'upgrader_post_install', array( $this, 'after_install' ), 10, 3 );
+
+		// Bust our cache when WordPress forces an update check.
+		add_action( 'delete_site_transient_update_plugins', array( $this, 'bust_cache' ) );
 	}
 
 	/**
@@ -63,6 +66,15 @@ class Orbis_GitHub_Updater {
 
 		$this->github_response = json_decode( wp_remote_retrieve_body( $response ) );
 		set_transient( $cache_key, $this->github_response, 12 * HOUR_IN_SECONDS );
+	}
+
+	/**
+	 * Clear cached GitHub response when WordPress purges its update transient.
+	 * This fires when a user clicks "Check again" on Dashboard > Updates.
+	 */
+	public function bust_cache() {
+		delete_transient( 'orbis_github_release' );
+		$this->github_response = null;
 	}
 
 	/**
