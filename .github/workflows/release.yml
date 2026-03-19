@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine next version
+        id: version
+        run: |
+          latest=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ -z "$latest" ]; then
+            next="1.0.0"
+          else
+            version="${latest#v}"
+            IFS='.' read -r major minor patch <<< "$version"
+            patch=$((patch + 1))
+            next="$major.$minor.$patch"
+          fi
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "Bumping to $next"
+
+      - name: Update version in plugin file
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          sed -i "s/Version: .*/Version: $VERSION/" custom-circles-module.php
+          sed -i "s/define( 'ORBIS_VERSION', '.*' )/define( 'ORBIS_VERSION', '$VERSION' )/" custom-circles-module.php
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add custom-circles-module.php
+          git commit -m "Bump version to ${{ steps.version.outputs.next }} [skip ci]"
+          git tag "v${{ steps.version.outputs.next }}"
+          git push origin main --tags
+
+      - name: Create plugin zip
+        run: |
+          mkdir -p dist/custom-circles-module
+          cp custom-circles-module.php dist/custom-circles-module/
+          cp -r classes modules dist/custom-circles-module/
+          cd dist && zip -r ../custom-circles-module.zip custom-circles-module/
+
+      - name: Create GitHub release
+        run: |
+          gh release create "v${{ steps.version.outputs.next }}" \
+            custom-circles-module.zip \
+            --title "Orbis v${{ steps.version.outputs.next }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
