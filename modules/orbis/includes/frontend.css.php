@@ -9,9 +9,10 @@
  */
 
 $content_size = ! empty( $settings->content_size ) ? max( 1, floatval( $settings->content_size ) ) : 60;
-$circle_count = isset( $settings->circle_count ) ? (int) $settings->circle_count : 1;
+$circles      = $module->get_circles();
 
 $allowed_border_styles = array( 'none', 'solid', 'dashed', 'dotted' );
+$allowed_units         = array( '%', 'px', 'rem', 'em' );
 ?>
 
 /* ── Container ───────────────────────────────────────────────────── */
@@ -22,11 +23,7 @@ $allowed_border_styles = array( 'none', 'solid', 'dashed', 'dotted' );
 }
 
 /* ── Decorative circles ──────────────────────────────────────────── */
-<?php for ( $i = 1; $i <= $circle_count; $i++ ) :
-	$circle = $module->get_circle( $i );
-	if ( ! $circle ) {
-		continue;
-	}
+<?php foreach ( $circles as $i => $circle ) :
 
 	$c_size    = ! empty( $circle->size ) ? max( 1, floatval( $circle->size ) ) : 80;
 	$offset_x  = isset( $circle->offset_x ) ? floatval( $circle->offset_x ) : 0;
@@ -34,8 +31,6 @@ $allowed_border_styles = array( 'none', 'solid', 'dashed', 'dotted' );
 	$offset_y  = isset( $circle->offset_y ) ? floatval( $circle->offset_y ) : 0;
 	$offset_yu = isset( $circle->offset_y_unit ) ? $circle->offset_y_unit : '%';
 
-	// Sanitise units.
-	$allowed_units = array( '%', 'px', 'rem', 'em' );
 	if ( ! in_array( $offset_xu, $allowed_units, true ) ) {
 		$offset_xu = '%';
 	}
@@ -56,7 +51,7 @@ $allowed_border_styles = array( 'none', 'solid', 'dashed', 'dotted' );
 	top: calc(50% + <?php echo $offset_y . $offset_yu; ?>);
 	left: calc(50% + <?php echo $offset_x . $offset_xu; ?>);
 	transform: translate(-50%, -50%);
-	z-index: <?php echo $i; ?>;
+	z-index: <?php echo $i + 1; ?>;
 	<?php if ( ! empty( $circle->bg_color ) ) : ?>
 	background-color: <?php echo FLBuilderColor::hex_or_rgb( $circle->bg_color ); ?>;
 	<?php endif; ?>
@@ -64,7 +59,7 @@ $allowed_border_styles = array( 'none', 'solid', 'dashed', 'dotted' );
 	border: <?php echo intval( $circle->border_width ); ?>px <?php echo $border_style; ?> <?php echo ! empty( $circle->border_color ) ? FLBuilderColor::hex_or_rgb( $circle->border_color ) : 'transparent'; ?>;
 	<?php endif; ?>
 }
-<?php endfor; ?>
+<?php endforeach; ?>
 
 /* ── Content circle ──────────────────────────────────────────────── */
 .fl-node-<?php echo $id; ?> .orbis-content {
@@ -134,6 +129,9 @@ $allowed_border_styles = array( 'none', 'solid', 'dashed', 'dotted' );
 	<?php endif; ?>
 	<?php if ( ! empty( $settings->text_align ) ) : ?>
 	text-align: <?php echo esc_attr( $settings->text_align ); ?>;
+	<?php endif; ?>
+	<?php if ( isset( $settings->text_rotation ) && '' !== $settings->text_rotation && '0' !== $settings->text_rotation ) : ?>
+	transform: rotate(<?php echo floatval( $settings->text_rotation ); ?>deg);
 	<?php endif; ?>
 }
 <?php endif; ?>

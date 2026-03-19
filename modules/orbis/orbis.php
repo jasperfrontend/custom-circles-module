@@ -34,17 +34,14 @@ class OrbisModule extends FLBuilderModule {
 	}
 
 	/**
-	 * Return circle settings object for a given index (1-4).
-	 * Returns null when the circle is not configured.
+	 * Return all configured circles as an array of objects.
 	 */
-	public function get_circle( $index ) {
-		$key    = "circle_{$index}";
-		$circle = isset( $this->settings->{$key} ) ? $this->settings->{$key} : null;
-
-		if ( empty( $circle ) || ! is_object( $circle ) ) {
-			return null;
+	public function get_circles() {
+		if ( empty( $this->settings->circles ) || ! is_array( $this->settings->circles ) ) {
+			return array();
 		}
-		return $circle;
+
+		return array_filter( $this->settings->circles, 'is_object' );
 	}
 }
 
@@ -212,6 +209,22 @@ FLBuilder::register_module( 'OrbisModule', array(
 							'right'  => __( 'Right', 'orbis' ),
 						),
 					),
+					'text_rotation'    => array(
+						'type'        => 'text',
+						'label'       => __( 'Text Rotation', 'orbis' ),
+						'default'     => '0',
+						'description' => 'deg',
+						'maxlength'   => '4',
+						'size'        => '5',
+						'placeholder' => '0',
+						'help'        => __( 'Rotate the text in degrees (e.g. -15 or 30).', 'orbis' ),
+						'preview'     => array(
+							'type'     => 'css',
+							'selector' => '.orbis-text',
+							'property' => 'transform',
+							'unit'     => 'deg',
+						),
+					),
 					'content_border_style' => array(
 						'type'    => 'select',
 						'label'   => __( 'Border Style', 'orbis' ),
@@ -256,46 +269,12 @@ FLBuilder::register_module( 'OrbisModule', array(
 			'circles_general' => array(
 				'title'  => '',
 				'fields' => array(
-					'circle_count' => array(
-						'type'    => 'select',
-						'label'   => __( 'Number of Circles', 'orbis' ),
-						'default' => '1',
-						'options' => array(
-							'1' => '1',
-							'2' => '2',
-							'3' => '3',
-							'4' => '4',
-						),
-						'toggle'  => array(
-							'1' => array( 'fields' => array( 'circle_1' ) ),
-							'2' => array( 'fields' => array( 'circle_1', 'circle_2' ) ),
-							'3' => array( 'fields' => array( 'circle_1', 'circle_2', 'circle_3' ) ),
-							'4' => array( 'fields' => array( 'circle_1', 'circle_2', 'circle_3', 'circle_4' ) ),
-						),
-					),
-					'circle_1'     => array(
+					'circles' => array(
 						'type'         => 'form',
-						'label'        => __( 'Circle 1 (Bottom)', 'orbis' ),
+						'label'        => __( 'Circle', 'orbis' ),
 						'form'         => 'orbis_circle_settings',
 						'preview_text' => 'bg_color',
-					),
-					'circle_2'     => array(
-						'type'         => 'form',
-						'label'        => __( 'Circle 2', 'orbis' ),
-						'form'         => 'orbis_circle_settings',
-						'preview_text' => 'bg_color',
-					),
-					'circle_3'     => array(
-						'type'         => 'form',
-						'label'        => __( 'Circle 3', 'orbis' ),
-						'form'         => 'orbis_circle_settings',
-						'preview_text' => 'bg_color',
-					),
-					'circle_4'     => array(
-						'type'         => 'form',
-						'label'        => __( 'Circle 4 (Top)', 'orbis' ),
-						'form'         => 'orbis_circle_settings',
-						'preview_text' => 'bg_color',
+						'multiple'     => true,
 					),
 				),
 			),

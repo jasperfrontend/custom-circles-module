@@ -8,19 +8,14 @@
  *   $id       – Module node ID.
  */
 
-$circle_count = isset( $settings->circle_count ) ? (int) $settings->circle_count : 1;
-$photo_url    = $module->get_photo_url();
+$circles   = $module->get_circles();
+$photo_url = $module->get_photo_url();
 ?>
 <div class="orbis-wrapper">
 
-	<?php for ( $i = 1; $i <= $circle_count; $i++ ) :
-		$circle = $module->get_circle( $i );
-		if ( ! $circle ) {
-			continue;
-		}
-	?>
+	<?php foreach ( $circles as $i => $circle ) : ?>
 	<div class="orbis-circle orbis-circle-<?php echo esc_attr( $i ); ?>"></div>
-	<?php endfor; ?>
+	<?php endforeach; ?>
 
 	<div class="orbis-content">
 		<?php if ( 'image' === $settings->content_type && ! empty( $photo_url ) ) : ?>
