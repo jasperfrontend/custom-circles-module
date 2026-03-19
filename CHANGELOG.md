@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Added label field to each circle, shown in the repeater list instead of the hex color value.
+
 ## 1.1.1
 
 - Fixed update cache not clearing when checking for updates manually in WordPress.

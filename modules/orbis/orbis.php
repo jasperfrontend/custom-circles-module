@@ -273,7 +273,7 @@ FLBuilder::register_module( 'OrbisModule', array(
 						'type'         => 'form',
 						'label'        => __( 'Circle', 'orbis' ),
 						'form'         => 'orbis_circle_settings',
-						'preview_text' => 'bg_color',
+						'preview_text' => 'label',
 						'multiple'     => true,
 					),
 				),
@@ -294,7 +294,14 @@ FLBuilder::register_settings_form( 'orbis_circle_settings', array(
 				'appearance' => array(
 					'title'  => __( 'Appearance', 'orbis' ),
 					'fields' => array(
-						'bg_color'     => array(
+						'label'        => array(
+						'type'        => 'text',
+						'label'       => __( 'Label', 'orbis' ),
+						'default'     => __( 'Circle', 'orbis' ),
+						'placeholder' => __( 'e.g. Large green border', 'orbis' ),
+						'help'        => __( 'A name for this circle, shown in the list.', 'orbis' ),
+					),
+					'bg_color'     => array(
 							'type'       => 'color',
 							'label'      => __( 'Background Color', 'orbis' ),
 							'default'    => 'dddddd',
