@@ -14,24 +14,36 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Determine next version
         id: version
         run: |
-          latest=$(git tag -l 'v*' --sort=-v:refname | head -1)
-          if [ -z "$latest" ]; then
-            next="1.0.0"
+          # Read version from the plugin file (source of truth for manual bumps)
+          php_version=$(grep -oP 'Version: \K[0-9.]+' custom-circles-module.php)
+
+          # Find latest git tag
+          latest_tag=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          latest_version="${latest_tag#v}"
+
+          if [ -z "$latest_tag" ]; then
+            # No tags yet — use whatever is in the PHP file
+            next="$php_version"
+          elif [ "$(printf '%s\n' "$php_version" "$latest_version" | sort -V | tail -1)" = "$php_version" ] \
+               && [ "$php_version" != "$latest_version" ]; then
+            # PHP version is higher than latest tag — developer bumped manually
+            next="$php_version"
           else
-            version="${latest#v}"
-            IFS='.' read -r major minor patch <<< "$version"
+            # Auto-bump patch from latest tag
+            IFS='.' read -r major minor patch <<< "$latest_version"
             patch=$((patch + 1))
             next="$major.$minor.$patch"
           fi
+
           echo "next=$next" >> "$GITHUB_OUTPUT"
-          echo "Bumping to $next"
+          echo "Releasing $next"
 
       - name: Update version in plugin file
         run: |
@@ -44,14 +56,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add custom-circles-module.php
-          git commit -m "Bump version to ${{ steps.version.outputs.next }} [skip ci]"
+          git diff --cached --quiet && echo "No version change needed" || {
+            git commit -m "Bump version to ${{ steps.version.outputs.next }} [skip ci]"
+          }
           git tag "v${{ steps.version.outputs.next }}"
           git push origin main --tags
 
       - name: Create plugin zip
         run: |
           mkdir -p dist/custom-circles-module
-          cp custom-circles-module.php dist/custom-circles-module/
+          cp custom-circles-module.php CHANGELOG.md dist/custom-circles-module/
           cp -r classes modules dist/custom-circles-module/
           cd dist && zip -r ../custom-circles-module.zip custom-circles-module/
 
